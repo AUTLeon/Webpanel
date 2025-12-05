@@ -145,6 +145,7 @@ button.backup:hover { background: #42a5f5; }
     margin-top: 10px;
     display: flex;
     gap: 10px;
+    width: 65%;
 }
 
 .console-input input {
