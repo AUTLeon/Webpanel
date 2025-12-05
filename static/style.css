@@ -121,6 +121,41 @@ button.backup:hover { background: #42a5f5; }
     font-size: 0.85rem;
     color:#eee;
 }
+.container3 {
+    margin: 20px auto;
+    padding: 20px;
+    background: #222;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 900px;
+    color: white;
+}
+
+.console-output {
+    background: #111;
+    padding: 10px;
+    height: 250px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    border: 1px solid #444;
+    border-radius: 5px;
+}
+
+.console-input {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+.console-input input {
+    flex: 1;
+    padding: 8px;
+    background: #333;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 5px;
+}
+
 @media only screen and (max-width: 900px) {
     .wrapper {
         flex-direction: column;

@@ -15,15 +15,17 @@
             </div>
 
             <div class="buttons">
-            <a href="/start"><button class="start">🚀 Starten</button></a>
-            <a href="/stop"><button class="stop">🛑 Stoppen</button></a>
-            <a href="/backup"><button class="backup">💾 Backup</button></a>
+                <a href="/start"><button class="start">🚀 Starten</button></a>
+                <a href="/stop"><button class="stop">🛑 Stoppen</button></a>
+                <a href="/backup"><button class="backup">💾 Backup</button></a>
             </div>
 
             <div class="status">
                 Status: <span id="status-text">lade...</span>
             </div>
         </div>
+
+        <!-- LOGFenster -->
         <div class="container2">
             <div class="logs-controls">
                 <button id="refresh-logs">Logs aktualisieren</button>
@@ -34,13 +36,30 @@
             <pre id="logs" class="logs">lade logs...</pre>
         </div>
     </div>
+
+    <!-- === Neue Server-Konsole === -->
+    <div class="container3">
+        <h2>🖥 Server-Konsole</h2>
+
+        <div id="console-output" class="console-output">
+            Konsole bereit...
+        </div>
+
+        <div class="console-input">
+            <input id="console-command" type="text" placeholder="Befehl eingeben...">
+            <button id="send-command">Senden</button>
+        </div>
+    </div>
+
 <script>
+/* ===== STATUS ===== */
 async function updateStatus(){
     try{
         const resp = await fetch("/status");
         const j = await resp.json();
         const s = document.getElementById("status-text");
         const sn = document.getElementById("screen-name");
+
         if(j.running){
             s.innerText = "läuft";
             s.style.color = "#4caf50";
@@ -48,6 +67,7 @@ async function updateStatus(){
             s.innerText = "gestoppt";
             s.style.color = "#f44336";
         }
+
         sn.innerText = j.detected_screen ? j.detected_screen : "keine erkannt";
     } catch(e){
         document.getElementById("status-text").innerText = "Fehler!";
@@ -56,6 +76,7 @@ async function updateStatus(){
     }
 }
 
+/* ===== LOGS ===== */
 async function loadLogs(){
     const lines = document.getElementById("log-lines").value || 200;
     try{
@@ -83,7 +104,7 @@ document.getElementById("auto-refresh-logs").addEventListener("change", function
     }
 });
 
-// Buttons: intercept und Status nach Aktion aktualisieren
+/* ===== START/STOP/BACKUP ===== */
 document.querySelectorAll('a').forEach(link => {
     link.addEventListener('click', async function(e){
         e.preventDefault();
@@ -93,7 +114,7 @@ document.querySelectorAll('a').forEach(link => {
             const s = document.getElementById("status-text");
             s.innerText = txt;
             s.style.color = "#f0a500";
-            // kleine Verzögerung, damit Start/Stop Zeit hat
+
             setTimeout(updateStatus, 1500);
             setTimeout(loadLogs, 2000);
         }catch(e){
@@ -102,10 +123,40 @@ document.querySelectorAll('a').forEach(link => {
     });
 });
 
-// initial
+/* ===== KONSOLE (NEU) ===== */
+async function sendConsoleCommand(){
+    const cmdInput = document.getElementById("console-command");
+    const cmd = cmdInput.value.trim();
+    if(!cmd) return;
+
+    const outBox = document.getElementById("console-output");
+
+    outBox.innerText += "\n> " + cmd;
+
+    const resp = await fetch("/console", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({command: cmd})
+    });
+
+    const txt = await resp.text();
+    outBox.innerText += "\n" + txt + "\n";
+
+    outBox.scrollTop = outBox.scrollHeight;
+    cmdInput.value = "";
+}
+
+document.getElementById("send-command").addEventListener("click", sendConsoleCommand);
+
+document.getElementById("console-command").addEventListener("keypress", function(e){
+    if(e.key === "Enter") sendConsoleCommand();
+});
+
+/* ===== INITIAL ===== */
 updateStatus();
 loadLogs();
 setInterval(updateStatus, 5000);
 </script>
+
 </body>
 </html>

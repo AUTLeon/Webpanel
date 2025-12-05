@@ -48,7 +48,6 @@ def find_screens():
 
 
 def detect_server_screen():
-    """Gibt den wahrscheinlichsten Screen-Namen für den Minecraft-Server zurück (oder None)."""
     screens = find_screens()
     for s in screens:
         if s == PANEL_SCREEN_NAME:
@@ -64,31 +63,25 @@ def detect_server_screen():
 
 
 def is_server_running():
-    """
-    Prüft, ob der Minecraft-Server läuft.
-    Rückgabe: True = läuft, False = läuft nicht
-    """
-
-    # 1) Prüfe server.pid
+    # PID check
     if os.path.exists(SERVER_PID_FILE):
         try:
             with open(SERVER_PID_FILE, "r") as f:
                 pid = f.read().strip()
-            if pid and pid.isdigit():
+            if pid.isdigit():
                 res = run(f"ps -p {pid} -o comm=", wait=True)
                 if res.returncode == 0 and res.stdout.strip():
                     return True
         except Exception:
             pass
 
-    # 2) Prüfe alle laufenden Java-Prozesse auf bekannte Keywords
+    # Java process check
     res = run("pgrep -af java", wait=True)
-    java_processes = (res.stdout or "").splitlines()
-    for proc in java_processes:
+    for proc in (res.stdout or "").splitlines():
         if any(key in proc.lower() for key in ("fabric", "minecraft", "server", "paper")):
             return True
 
-    # 3) Prüfe Screens auf bekannte Keywords
+    # Screen check
     screens = find_screens()
     for s in screens:
         if s != PANEL_SCREEN_NAME and any(kw in s.lower() for kw in LIKELY_SERVER_KEYWORDS):
@@ -155,29 +148,56 @@ def screens():
 
 @app.route("/logs")
 def logs():
-    """
-    /logs?lines=200
-    Liefert die letzten N Zeilen der server.log (falls vorhanden).
-    """
     n = request.args.get("lines", "200")
     try:
         n_int = int(n)
     except ValueError:
         n_int = 200
     if os.path.exists(SERVER_LOG):
-        res = run(f"tail -n {n_int} {shlex.quote(SERVER_LOG)}")
-        if res and res.returncode == 0:
-            return res.stdout, 200, {"Content-Type": "text/plain; charset=utf-8"}
-        else:
-            try:
-                with open(SERVER_LOG, "r", encoding="utf-8", errors="ignore") as f:
-                    lines = f.readlines()
-                    tail = "".join(lines[-n_int:])
-                    return tail, 200, {"Content-Type": "text/plain; charset=utf-8"}
-            except Exception as e:
-                return f"Fehler beim Lesen der Logdatei: {e}", 500
+        try:
+            with open(SERVER_LOG, "r", encoding="utf-8", errors="ignore") as f:
+                lines = f.readlines()
+                return "".join(lines[-n_int:]), 200, {"Content-Type": "text/plain; charset=utf-8"}
+        except Exception as e:
+            return f"Fehler beim Lesen der Logdatei: {e}", 500
     else:
         return "server.log nicht gefunden!", 404
+
+
+# === 🟦 NEUE KONSOLE: HTML-Seite ===
+@app.route("/console")
+def console():
+    return render_template("console.html")
+
+
+# === 🟦 NEUE KONSOLE: Befehl senden ===
+@app.route("/console/send", methods=["POST"])
+def console_send():
+    cmd = request.json.get("cmd")
+    screen = detect_server_screen()
+
+    if not screen:
+        return jsonify({"status": "error", "msg": "Kein Server-Screen gefunden"}), 400
+
+    if cmd:
+        run(f'screen -S {shlex.quote(screen)} -X stuff "{cmd}\\n"')
+        return jsonify({"status": "ok", "sent": cmd})
+
+    return jsonify({"status": "error", "msg": "Kein Command"}), 400
+
+
+# === 🟦 NEUE KONSOLE: Live-Logs ===
+@app.route("/console/log")
+def console_log():
+    try:
+        if os.path.exists(SERVER_LOG):
+            with open(SERVER_LOG, "r", errors="ignore") as f:
+                lines = f.readlines()[-200:]
+            return jsonify({"log": "".join(lines)})
+        else:
+            return jsonify({"log": "server.log nicht gefunden!"})
+    except Exception as e:
+        return jsonify({"log": f"Fehler: {e}"})
 
 
 if __name__ == "__main__":
