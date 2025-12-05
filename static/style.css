@@ -1,0 +1,134 @@
+body {
+    background: linear-gradient(135deg, #1b1b1b, #2c2c2c);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+
+    color: #ffffff;
+    font-family: 'Roboto', sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 30px;
+    background: rgba(0,0,0,0.6);
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.7);
+    margin-top: 150px;
+}
+
+.container2 {
+    max-width: 75%;
+    min-width: 70%;
+    margin: 50px auto;
+    padding: 30px;
+    background: rgba(0,0,0,0.6);
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.7);
+}
+
+.wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 5px;
+    width: 100%;
+    margin-top: 5%;
+    margin-bottom: 5%;
+}
+
+h1 {
+    font-size: 2.2rem;
+    margin-bottom: 30px;
+    color: #f0a500;
+    text-shadow: 0 0 10px #f0a500;
+}
+
+.buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+button {
+    padding: 15px 0;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.3s;
+    width: 100%;
+}
+
+button.start { background: #4caf50; }
+button.start:hover { background: #66bb6a; }
+
+button.stop { background: #f44336; }
+button.stop:hover { background: #e57373; }
+
+button.backup { background: #2196f3; }
+button.backup:hover { background: #42a5f5; }
+
+.status {
+    margin-top: 30px;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* iPhone 13 Pro */
+@media only screen and (max-width: 414px) {
+    .container { margin: 20px; padding: 20px; }
+    h1 { font-size: 1.8rem; margin-bottom: 20px; }
+    button { font-size: 1rem; padding: 12px 0; }
+    .status { font-size: 1rem; }
+}
+
+/* Kleine Laptops */
+@media only screen and (max-width: 1440px) {
+    .container { max-width: 450px; padding: 25px; }
+    h1 { font-size: 2rem; }
+    button { font-size: 1.1rem; padding: 14px 0; }
+}
+.meta {
+    margin-bottom: 12px;
+    color: #ddd;
+    font-size: 0.95rem;
+}
+.logs-controls {
+    display:flex;
+    gap:10px;
+    align-items:center;
+    justify-content:center;
+    margin-top:15px;
+    flex-wrap:wrap;
+}
+.pre {
+    white-space: pre-wrap;
+}
+.logs {
+    margin-top:15px;
+    max-height: 55vh;
+    overflow: auto;
+    text-align:left;
+    background: rgba(0,0,0,0.6);
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color:#eee;
+}
+@media only screen and (max-width: 900px) {
+    .wrapper {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .container2 {
+        max-width: 90%;
+        min-width: 90%;
+    }
+}
