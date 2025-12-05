@@ -147,7 +147,10 @@ button.backup:hover { background: #42a5f5; }
     gap: 10px;
     width: 65%;
 }
-
+.console-input-text {
+    font-size: 1rem;
+    width: 75%;
+}
 .console-input input {
     flex: 1;
     padding: 8px;
