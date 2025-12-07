@@ -2,161 +2,169 @@
 <html lang="de">
 <head>
     <meta charset="utf-8">
-    <title>Minecraft Panel</title>
+    <title>Minecraft Multiserver Panel</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="wrapper">
-        <div class="container">
-            <h1>Minecraft Server Panel</h1>
+        <h1>Minecraft Multiserver Panel</h1>
 
+        <!-- Server-Auswahl -->
+        <div class="server-switch">
+            <button class="switch-btn" data-server="server1">Server 1 (1.21.10)</button>
+            <button class="switch-btn" data-server="server2">Server 2 (1.20.4)</button>
+        </div>
+
+        <!-- Panels -->
+        <div id="server1-panel" class="server-panel">
+            <h2>Server 1 – 1.21.10</h2>
             <div class="meta">
-                Active Screen: <strong id="screen-name">lade...</strong>
+                Active Screen: <strong id="screen-name-1">lade...</strong>
             </div>
-
             <div class="buttons">
-                <a href="/start"><button class="start">🚀 Starten</button></a>
-                <a href="/stop"><button class="stop">🛑 Stoppen</button></a>
-                <a href="/backup"><button class="backup">💾 Backup</button></a>
+                <button class="start" onclick="serverAction('server1', 'start')">🚀 Starten</button>
+                <button class="stop" onclick="serverAction('server1', 'stop')">🛑 Stoppen</button>
+                <button class="backup" onclick="serverAction('server1', 'backup')">💾 Backup</button>
             </div>
-
             <div class="status">
-                Status: <span id="status-text">lade...</span>
+                Status: <span id="status-text-1">lade...</span>
             </div>
-        </div>
-
-        <!-- LOGFenster -->
-        <div class="container2">
             <div class="logs-controls">
-                <button id="refresh-logs">Logs aktualisieren</button>
-                <label><input type="checkbox" id="auto-refresh-logs"> Auto-refresh (5s)</label>
-                <label>Zeilen: <input id="log-lines" type="number" value="25" min="10" max="5000" style="width:80px"></label>
+                <button onclick="loadLogs('server1')">Logs aktualisieren</button>
+                <label><input type="checkbox" id="auto-refresh-logs-1"> Auto-refresh (5s)</label>
+                <label>Zeilen: <input id="log-lines-1" type="number" value="25" min="10" max="5000" style="width:80px"></label>
             </div>
-
-            <pre id="logs" class="logs">lade logs...</pre>
-        </div>
-    </div>
-
-    <!-- === Neue Server-Konsole === -->
-    <div class="container3">
-        <h2>🖥 Server-Konsole</h2>
-
-        <div id="console-output" class="console-output">
-            Konsole bereit...
+            <pre id="logs-1" class="logs">lade logs...</pre>
+            <div class="console-input">
+                <input id="console-command-1" class="console-input-text" type="text" placeholder="Befehl eingeben...">
+                <button onclick="sendConsoleCommand('server1')">Senden</button>
+            </div>
+            <div id="console-output-1" class="console-output">Konsole bereit...</div>
         </div>
 
-        <div class="console-input">
-            <input id="console-command" class="console-input-text" type="text" placeholder="Befehl eingeben...">
-            <button id="send-command">Senden</button>
+        <div id="server2-panel" class="server-panel" style="display:none;">
+            <h2>Server 2 – 1.20.4</h2>
+            <div class="meta">
+                Active Screen: <strong id="screen-name-2">lade...</strong>
+            </div>
+            <div class="buttons">
+                <button class="start" onclick="serverAction('server2', 'start')">🚀 Starten</button>
+                <button class="stop" onclick="serverAction('server2', 'stop')">🛑 Stoppen</button>
+                <button class="backup" onclick="serverAction('server2', 'backup')">💾 Backup</button>
+            </div>
+            <div class="status">
+                Status: <span id="status-text-2">lade...</span>
+            </div>
+            <div class="logs-controls">
+                <button onclick="loadLogs('server2')">Logs aktualisieren</button>
+                <label><input type="checkbox" id="auto-refresh-logs-2"> Auto-refresh (5s)</label>
+                <label>Zeilen: <input id="log-lines-2" type="number" value="25" min="10" max="5000" style="width:80px"></label>
+            </div>
+            <pre id="logs-2" class="logs">lade logs...</pre>
+            <div class="console-input">
+                <input id="console-command-2" class="console-input-text" type="text" placeholder="Befehl eingeben...">
+                <button onclick="sendConsoleCommand('server2')">Senden</button>
+            </div>
+            <div id="console-output-2" class="console-output">Konsole bereit...</div>
         </div>
     </div>
 
 <script>
+/* ===== Server wechseln ===== */
+document.querySelectorAll(".switch-btn").forEach(btn => {
+    btn.addEventListener("click", function(){
+        const server = this.dataset.server;
+        document.querySelectorAll(".server-panel").forEach(p => p.style.display = "none");
+        document.getElementById(server + "-panel").style.display = "block";
+    });
+});
+
 /* ===== STATUS ===== */
-async function updateStatus(){
+async function updateStatus(server){
+    const sText = document.getElementById("status-text-" + (server=="server1"?1:2));
+    const screenName = document.getElementById("screen-name-" + (server=="server1"?1:2));
     try{
-        const resp = await fetch("/status");
+        const resp = await fetch(`/${server}/status`);
         const j = await resp.json();
-        const s = document.getElementById("status-text");
-        const sn = document.getElementById("screen-name");
-
         if(j.running){
-            s.innerText = "läuft";
-            s.style.color = "#4caf50";
+            sText.innerText = "läuft";
+            sText.style.color = "#4caf50";
         } else {
-            s.innerText = "gestoppt";
-            s.style.color = "#f44336";
+            sText.innerText = "gestoppt";
+            sText.style.color = "#f44336";
         }
-
-        sn.innerText = j.detected_screen ? j.detected_screen : "keine erkannt";
+        screenName.innerText = j.detected_screen || "keine erkannt";
     } catch(e){
-        document.getElementById("status-text").innerText = "Fehler!";
-        document.getElementById("status-text").style.color = "#ff9800";
-        document.getElementById("screen-name").innerText = "Fehler";
+        sText.innerText = "Fehler!";
+        sText.style.color = "#ff9800";
+        screenName.innerText = "Fehler";
+    }
+}
+
+/* ===== START/STOP/BACKUP ===== */
+async function serverAction(server, action){
+    const sText = document.getElementById("status-text-" + (server=="server1"?1:2));
+    try{
+        const resp = await fetch(`/${server}/${action}`);
+        const txt = await resp.text();
+        sText.innerText = txt;
+        sText.style.color = "#f0a500";
+        setTimeout(()=>updateStatus(server),1500);
+        setTimeout(()=>loadLogs(server),2000);
+    } catch(e){
+        sText.innerText = "Fehler!";
     }
 }
 
 /* ===== LOGS ===== */
-async function loadLogs(){
-    const lines = document.getElementById("log-lines").value || 200;
+let autoLogsIntervals = {};
+async function loadLogs(server){
+    const lines = document.getElementById(`log-lines-${server=="server1"?1:2}`).value || 200;
+    const logsBox = document.getElementById(`logs-${server=="server1"?1:2}`);
     try{
-        const resp = await fetch(`/logs?lines=${lines}`);
+        const resp = await fetch(`/${server}/logs?lines=${lines}`);
         if(resp.status === 200){
-            const txt = await resp.text();
-            document.getElementById("logs").innerText = txt;
+            logsBox.innerText = await resp.text();
         } else {
-            const txt = await resp.text();
-            document.getElementById("logs").innerText = "Fehler: " + txt;
+            logsBox.innerText = "Fehler: " + await resp.text();
         }
     } catch(e){
-        document.getElementById("logs").innerText = "Fehler beim Laden der Logs";
+        logsBox.innerText = "Fehler beim Laden der Logs";
+    }
+    const autoCheckbox = document.getElementById(`auto-refresh-logs-${server=="server1"?1:2}`);
+    if(autoCheckbox.checked){
+        if(autoLogsIntervals[server]) clearInterval(autoLogsIntervals[server]);
+        autoLogsIntervals[server] = setInterval(()=>loadLogs(server),5000);
     }
 }
 
-document.getElementById("refresh-logs").addEventListener("click", () => loadLogs());
-let autoLogsInterval = null;
-document.getElementById("auto-refresh-logs").addEventListener("change", function(){
-    if(this.checked){
-        loadLogs();
-        autoLogsInterval = setInterval(loadLogs, 5000);
-    } else {
-        if(autoLogsInterval) clearInterval(autoLogsInterval);
-    }
-});
-
-/* ===== START/STOP/BACKUP ===== */
-document.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', async function(e){
-        e.preventDefault();
-        try{
-            const resp = await fetch(this.href);
-            const txt = await resp.text();
-            const s = document.getElementById("status-text");
-            s.innerText = txt;
-            s.style.color = "#f0a500";
-
-            setTimeout(updateStatus, 1500);
-            setTimeout(loadLogs, 2000);
-        }catch(e){
-            document.getElementById("status-text").innerText = "Fehler!";
-        }
-    });
-});
-
-/* ===== KONSOLE (NEU) ===== */
-async function sendConsoleCommand(){
-    const cmdInput = document.getElementById("console-command");
+/* ===== KONSOLE ===== */
+async function sendConsoleCommand(server){
+    const cmdInput = document.getElementById(`console-command-${server=="server1"?1:2}`);
     const cmd = cmdInput.value.trim();
     if(!cmd) return;
-
-    const outBox = document.getElementById("console-output");
-
+    const outBox = document.getElementById(`console-output-${server=="server1"?1:2}`);
     outBox.innerText += "\n> " + cmd;
-
-    const resp = await fetch("/console", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({command: cmd})
+    const resp = await fetch(`/${server}/console`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({command:cmd})
     });
-
     const txt = await resp.text();
     outBox.innerText += "\n" + txt + "\n";
-
     outBox.scrollTop = outBox.scrollHeight;
     cmdInput.value = "";
 }
 
-document.getElementById("send-command").addEventListener("click", sendConsoleCommand);
-
-document.getElementById("console-command").addEventListener("keypress", function(e){
-    if(e.key === "Enter") sendConsoleCommand();
+document.querySelectorAll("input[id^='console-command-']").forEach(input => {
+    input.addEventListener("keypress", function(e){
+        if(e.key==="Enter") sendConsoleCommand(this.id.includes("1")?"server1":"server2");
+    });
 });
 
 /* ===== INITIAL ===== */
-updateStatus();
-loadLogs();
-setInterval(updateStatus, 5000);
+["server1","server2"].forEach(s=>{updateStatus(s); loadLogs(s);});
+setInterval(()=>{["server1","server2"].forEach(s=>updateStatus(s))},5000);
 </script>
-
 </body>
 </html>
