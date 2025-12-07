@@ -39,7 +39,6 @@
                 <input id="console-command-1" class="console-input-text" type="text" placeholder="Befehl eingeben...">
                 <button onclick="sendConsoleCommand('server1')">Senden</button>
             </div>
-            <div id="console-output-1" class="console-output">Konsole bereit...</div>
         </div>
 
         <div id="server2-panel" class="server-panel" style="display:none;">
@@ -65,24 +64,32 @@
                 <input id="console-command-2" class="console-input-text" type="text" placeholder="Befehl eingeben...">
                 <button onclick="sendConsoleCommand('server2')">Senden</button>
             </div>
-            <div id="console-output-2" class="console-output">Konsole bereit...</div>
         </div>
     </div>
 
 <script>
+const serverMap = {
+    server1: 1,
+    server2: 2
+};
+let autoLogsIntervals = {};
+
 /* ===== Server wechseln ===== */
 document.querySelectorAll(".switch-btn").forEach(btn => {
-    btn.addEventListener("click", function(){
-        const server = this.dataset.server;
+    btn.addEventListener("click", () => {
+        const server = btn.dataset.server;
         document.querySelectorAll(".server-panel").forEach(p => p.style.display = "none");
         document.getElementById(server + "-panel").style.display = "block";
+        loadLogs(server); // sofort laden beim Wechsel
+        updateStatus(server);
     });
 });
 
 /* ===== STATUS ===== */
 async function updateStatus(server){
-    const sText = document.getElementById("status-text-" + (server=="server1"?1:2));
-    const screenName = document.getElementById("screen-name-" + (server=="server1"?1:2));
+    const idx = serverMap[server];
+    const sText = document.getElementById("status-text-" + idx);
+    const screenName = document.getElementById("screen-name-" + idx);
     try{
         const resp = await fetch(`/${server}/status`);
         const j = await resp.json();
@@ -103,7 +110,8 @@ async function updateStatus(server){
 
 /* ===== START/STOP/BACKUP ===== */
 async function serverAction(server, action){
-    const sText = document.getElementById("status-text-" + (server=="server1"?1:2));
+    const idx = serverMap[server];
+    const sText = document.getElementById("status-text-" + idx);
     try{
         const resp = await fetch(`/${server}/${action}`);
         const txt = await resp.text();
@@ -117,10 +125,10 @@ async function serverAction(server, action){
 }
 
 /* ===== LOGS ===== */
-let autoLogsIntervals = {};
 async function loadLogs(server){
-    const lines = document.getElementById(`log-lines-${server=="server1"?1:2}`).value || 200;
-    const logsBox = document.getElementById(`logs-${server=="server1"?1:2}`);
+    const idx = serverMap[server];
+    const lines = document.getElementById(`log-lines-${idx}`).value || 200;
+    const logsBox = document.getElementById(`logs-${idx}`);
     try{
         const resp = await fetch(`/${server}/logs?lines=${lines}`);
         if(resp.status === 200){
@@ -131,40 +139,48 @@ async function loadLogs(server){
     } catch(e){
         logsBox.innerText = "Fehler beim Laden der Logs";
     }
-    const autoCheckbox = document.getElementById(`auto-refresh-logs-${server=="server1"?1:2}`);
+
+    // Auto-refresh
+    const autoCheckbox = document.getElementById(`auto-refresh-logs-${idx}`);
     if(autoCheckbox.checked){
         if(autoLogsIntervals[server]) clearInterval(autoLogsIntervals[server]);
         autoLogsIntervals[server] = setInterval(()=>loadLogs(server),5000);
+    } else if(autoLogsIntervals[server]) {
+        clearInterval(autoLogsIntervals[server]);
     }
 }
 
 /* ===== KONSOLE ===== */
 async function sendConsoleCommand(server){
-    const cmdInput = document.getElementById(`console-command-${server=="server1"?1:2}`);
+    const idx = serverMap[server];
+    const cmdInput = document.getElementById(`console-command-${idx}`);
     const cmd = cmdInput.value.trim();
     if(!cmd) return;
-    const outBox = document.getElementById(`console-output-${server=="server1"?1:2}`);
-    outBox.innerText += "\n> " + cmd;
+    const logsBox = document.getElementById(`logs-${idx}`);
     const resp = await fetch(`/${server}/console`,{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body: JSON.stringify({command:cmd})
     });
     const txt = await resp.text();
-    outBox.innerText += "\n" + txt + "\n";
-    outBox.scrollTop = outBox.scrollHeight;
+    logsBox.innerText += `\n> ${cmd}\n${txt}\n`;
+    logsBox.scrollTop = logsBox.scrollHeight;
     cmdInput.value = "";
 }
 
+/* ===== Enter drücken ===== */
 document.querySelectorAll("input[id^='console-command-']").forEach(input => {
-    input.addEventListener("keypress", function(e){
-        if(e.key==="Enter") sendConsoleCommand(this.id.includes("1")?"server1":"server2");
+    input.addEventListener("keypress", e => {
+        if(e.key==="Enter"){
+            const server = input.id.includes("1")?"server1":"server2";
+            sendConsoleCommand(server);
+        }
     });
 });
 
 /* ===== INITIAL ===== */
-["server1","server2"].forEach(s=>{updateStatus(s); loadLogs(s);});
-setInterval(()=>{["server1","server2"].forEach(s=>updateStatus(s))},5000);
+Object.keys(serverMap).forEach(s => { updateStatus(s); loadLogs(s); });
+setInterval(()=>Object.keys(serverMap).forEach(s => updateStatus(s)),5000);
 </script>
 </body>
 </html>
