@@ -37,17 +37,17 @@
         <div id="server1-panel" class="server-panel">
             <h2>Server 1 – 1.21.10</h2>
             <div class="meta">
-                Active Screen: <strong id="screen-name-1">lade...</strong>
+                Active Screen: <strong id="screen-name-1">loading...</strong>
             </div>
             <div class="buttons">
-                <button class="start" onclick="serverAction('server1', 'start')">🚀 Starten</button>
-                <button class="stop" onclick="serverAction('server1', 'stop')">🛑 Stoppen</button>
+                <button class="start" onclick="serverAction('server1', 'start')">🚀 Start</button>
+                <button class="stop" onclick="serverAction('server1', 'stop')">🛑 Stop</button>
                 <button class="backup" onclick="serverAction('server1', 'backup')">💾 Backup</button>
             </div>
             <div class="status">
-                Status: <span id="status-text-1">lade...</span>
+                Status: <span id="status-text-1">loading...</span>
             </div>
-            <pre id="logs-1" class="logs">lade logs...</pre>
+            <pre id="logs-1" class="logs">loading logs...</pre>
             <div class="console-input">
                 <input id="console-command-1" class="console-input-text" type="text" placeholder="Befehl eingeben...">
                 <button onclick="sendConsoleCommand('server1')">Senden</button>
@@ -57,17 +57,17 @@
         <div id="server2-panel" class="server-panel" style="display:none;">
             <h2>Server 2 – 1.20.4</h2>
             <div class="meta">
-                Active Screen: <strong id="screen-name-2">lade...</strong>
+                Active Screen: <strong id="screen-name-2">loading...</strong>
             </div>
             <div class="buttons">
-                <button class="start" onclick="serverAction('server2', 'start')">🚀 Starten</button>
-                <button class="stop" onclick="serverAction('server2', 'stop')">🛑 Stoppen</button>
+                <button class="start" onclick="serverAction('server2', 'start')">🚀 Start</button>
+                <button class="stop" onclick="serverAction('server2', 'stop')">🛑 Stop</button>
                 <button class="backup" onclick="serverAction('server2', 'backup')">💾 Backup</button>
             </div>
             <div class="status">
-                Status: <span id="status-text-2">lade...</span>
+                Status: <span id="status-text-2">loading...</span>
             </div>
-            <pre id="logs-2" class="logs">lade logs...</pre>
+            <pre id="logs-2" class="logs">loading logs...</pre>
             <div class="console-input">
                 <input id="console-command-2" class="console-input-text" type="text" placeholder="Befehl eingeben...">
                 <button onclick="sendConsoleCommand('server2')">Senden</button>
@@ -98,10 +98,10 @@ async function updateStatus(server){
         const resp = await fetch(`/${server}/status`);
         const j = await resp.json();
         if(j.running){
-            sText.innerText = "läuft";
+            sText.innerText = "running";
             sText.style.color = "#4caf50";
         } else {
-            sText.innerText = "gestoppt";
+            sText.innerText = "stopped";
             sText.style.color = "#f44336";
         }
         screenName.innerText = j.detected_screen || "keine erkannt";
