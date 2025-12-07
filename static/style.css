@@ -1,3 +1,4 @@
+/* Grundlegendes Styling */
 body {
     background: linear-gradient(135deg, #1b1b1b, #2c2c2c);
     color: #fff;
@@ -7,99 +8,128 @@ body {
     padding: 0;
 }
 
+/* Wrapper für zentrierten Inhalt */
 .wrapper {
     width: 100%;
     max-width: 1000px;
-    margin: 20px auto;
-    padding: 10px;
+    margin: 30px auto;
+    padding: 15px;
 }
 
+/* Überschriften */
 h1 {
-    font-size: 2rem;
+    font-size: 2.2rem;
     color: #f0a500;
-    text-shadow: 0 0 10px #f0a500;
+    text-shadow: 0 0 15px #f0a500;
+    margin-bottom: 20px;
 }
 
+/* Server-Switch Bereich */
 .server-switch {
-    margin: 15px 0;
+    margin: 20px 0;
 }
 
 .switch-btn {
-    padding: 10px 20px;
-    margin: 0 5px;
+    padding: 12px 25px;
+    margin: 0 8px;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     background: #2196f3;
-    color: white;
+    color: #fff;
+    font-weight: bold;
     cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 .switch-btn:hover {
     background: #42a5f5;
+    transform: translateY(-2px);
 }
 
+/* Server-Panel */
 .server-panel {
-    background: rgba(0,0,0,0.6);
-    padding: 20px;
-    border-radius: 10px;
-    margin-top: 15px;
+    background: rgba(0,0,0,0.65);
+    padding: 25px;
+    border-radius: 12px;
+    margin-top: 20px;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.4);
 }
 
+/* Button-Gruppen */
 .buttons {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     justify-content: center;
-    margin: 10px 0;
+    margin: 15px 0;
 }
 
 button.start { background: #4caf50; }
-button.start:hover { background: #66bb6a; }
+button.start:hover { background: #66bb6a; transform: translateY(-2px); }
+
 button.stop { background: #f44336; }
-button.stop:hover { background: #e57373; }
+button.stop:hover { background: #e57373; transform: translateY(-2px); }
+
 button.backup { background: #2196f3; }
-button.backup:hover { background: #42a5f5; }
+button.backup:hover { background: #42a5f5; transform: translateY(-2px); }
 
-.status { margin: 10px 0; font-weight: bold; }
+/* Statusanzeige */
+.status {
+    margin: 12px 0;
+    font-weight: bold;
+    font-size: 1.1rem;
+    text-shadow: 0 0 5px #000;
+}
 
-.logs-controls { margin: 10px 0; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+/* Logs Steuerung */
+.logs-controls {
+    margin: 15px 0;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Logs & Konsole */
+.logs, .console-output {
+    background: rgba(0,0,0,0.7);
+    color: #eee;
+    padding: 12px;
+    border-radius: 6px;
+    text-align: left;
+    overflow: auto;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+}
 
 .logs {
-    background: rgba(0,0,0,0.6);
-    color: #eee;
-    padding: 10px;
     max-height: 300px;
-    overflow: auto;
-    border-radius: 5px;
-    text-align: left;
 }
 
 .console-output {
-    background: #111;
-    color: #fff;
-    padding: 10px;
-    margin-top: 10px;
-    height: 200px;
-    overflow-y: auto;
-    border-radius: 5px;
-    text-align: left;
+    height: 220px;
+    margin-top: 12px;
 }
 
+/* Konsole Eingabe */
 .console-input {
     display: flex;
-    gap: 10px;
-    margin-top: 10px;
+    gap: 12px;
+    margin-top: 12px;
     justify-content: center;
 }
 
 .console-input-text {
     flex: 1;
-    padding: 5px;
-    border-radius: 5px;
+    padding: 8px;
+    border-radius: 6px;
     border: 1px solid #555;
-    background: #333;
-    color: white;
+    background: #222;
+    color: #fff;
+    font-size: 1rem;
 }
 
-@media only screen and (max-width:900px){
+/* Responsive Design */
+@media only screen and (max-width: 900px){
     .server-panel { width: 95%; margin: 0 auto; }
-    h1 { font-size: 1.5rem; }
+    h1 { font-size: 1.6rem; }
+    .switch-btn, .buttons button { padding: 10px 18px; font-size: 0.95rem; }
 }
