@@ -101,6 +101,7 @@ button.backup:hover { background: #42a5f5; transform: translateY(-2px); box-shad
 .status {
     font-weight: 500;
     font-size: 1.1rem;
+    margin: 10px 0;
 }
 
 /* Logs Steuerung */
@@ -144,6 +145,17 @@ button.backup:hover { background: #42a5f5; transform: translateY(-2px); box-shad
     background: #222;
     color: #fff;
     font-size: 1rem;
+}
+.console-output {
+    background: #111;       /* dunkler Hintergrund */
+    color: #eee;            /* helle Schrift */
+    padding: 10px;          /* Innenabstand */
+    border-radius: 8px;     /* abgerundete Ecken */
+    max-height: 300px;      /* Höhe begrenzen */
+    overflow-y: auto;       /* Scroll bei Überlauf */
+    font-family: monospace; /* Konsole-Stil */
+    font-size: 0.9rem;
+    margin-top: 10px;
 }
 
 /* Buttons in Console Input */
