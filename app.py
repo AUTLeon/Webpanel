@@ -77,15 +77,13 @@ def backup(server):
 @app.route("/<server>/logs")
 def logs(server):
     """
-    Liest die letzten Zeilen aus logs/latest.log, nicht aus server.log
+    Liest die gesamte latest.log Datei aus
     """
     log_file = os.path.join(SERVERS[server]["dir"], "logs", "latest.log")
-    n = int(request.args.get("lines", "200"))
     if os.path.exists(log_file):
         with open(log_file, "r", errors="ignore") as f:
-            lines = f.readlines()
-        # Gib nur die letzten n Zeilen zurück
-        return "".join(lines[-n:]), 200, {"Content-Type":"text/plain; charset=utf-8"}
+            content = f.read()
+        return content, 200, {"Content-Type": "text/plain; charset=utf-8"}
     return "latest.log nicht gefunden!", 404
 
 @app.route("/<server>/console", methods=["POST"])
