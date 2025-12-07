@@ -1,4 +1,4 @@
-/* Grundlegendes Styling */
+/* Basic Styling */
 body {
     background: linear-gradient(135deg, #1b1b1b, #2c2c2c);
     color: #fff;
@@ -12,7 +12,7 @@ body {
     align-items: flex-start;
 }
 
-/* Wrapper für zentrierten Inhalt */
+/* Wrapper for centered content */
 .wrapper {
     width: 80%;
     max-width: 1200px;
@@ -23,7 +23,7 @@ body {
     gap: 20px;
 }
 
-/* Überschriften */
+/* Headings */
 h1 {
     font-size: 2.2rem;
     color: #f0a500;
@@ -32,7 +32,7 @@ h1 {
     margin-bottom: 20px;
 }
 
-/* Server-Switch Bereich */
+/* Server switch area */
 .server-switch {
     display: flex;
     justify-content: center;
@@ -56,7 +56,7 @@ h1 {
     box-shadow: 0 8px 20px rgba(0,0,0,0.35);
 }
 
-/* Server-Panel */
+/* Server panel */
 .server-panel {
     background: rgba(0,0,0,0.65);
     padding: 20px;
@@ -69,7 +69,7 @@ h1 {
     overflow-y: auto;
 }
 
-/* Buttons Start/Stop/Backup */
+/* Start/Stop/Backup buttons */
 .buttons {
     display: flex;
     justify-content: center;
@@ -97,14 +97,14 @@ button.stop:hover { background: #e57373; transform: translateY(-2px); box-shadow
 button.backup { background: #2196f3; color: #fff; }
 button.backup:hover { background: #42a5f5; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.3); }
 
-/* Statusanzeige */
+/* Status display */
 .status {
     font-weight: 500;
     font-size: 1.1rem;
     margin: 10px 0;
 }
 
-/* Logs Steuerung */
+/* Logs control */
 .logs-controls {
     display: flex;
     justify-content: center;
@@ -124,19 +124,19 @@ button.backup:hover { background: #42a5f5; transform: translateY(-2px); box-shad
     max-height: 300px;
     font-family: monospace;
 
-    /* Zeilenumbruch und smooth scroll */
-    white-space: pre-wrap;   /* lange Zeilen umbrechen */
-    word-break: break-word;   /* Zeilen sauber brechen */
-    scroll-behavior: smooth; /* flüssiges Scrollen */
+    /* Line wrap and smooth scrolling */
+    white-space: pre-wrap;   /* wrap long lines */
+    word-break: break-word;   /* break lines cleanly */
+    scroll-behavior: smooth; /* smooth scrolling */
 }
 
-
-/* Konsolen-Eingabe */
+/* Console input */
 .console-input {
     display: flex;
     gap: 10px;
     justify-content: center;
 }
+
 .meta {
     font-size: 0.9rem;
     color: #ccc;
@@ -152,17 +152,19 @@ button.backup:hover { background: #42a5f5; transform: translateY(-2px); box-shad
     color: #fff;
     font-size: 1rem;
 }
+
 .console-output {
-    background: #111;       /* dunkler Hintergrund */
-    color: #eee;            /* helle Schrift */
-    padding: 10px;          /* Innenabstand */
-    border-radius: 8px;     /* abgerundete Ecken */
-    max-height: 300px;      /* Höhe begrenzen */
-    overflow-y: auto;       /* Scroll bei Überlauf */
-    font-family: monospace; /* Konsole-Stil */
+    background: #111;       /* dark background */
+    color: #eee;            /* light text */
+    padding: 10px;          /* inner spacing */
+    border-radius: 8px;     /* rounded corners */
+    max-height: 300px;      /* max height */
+    overflow-y: auto;       /* scroll overflow */
+    font-family: monospace; /* console style */
     font-size: 0.9rem;
     margin-top: 10px;
 }
+
 .logs-controls label {
     display: flex;
     align-items: center;
@@ -172,12 +174,12 @@ button.backup:hover { background: #42a5f5; transform: translateY(-2px); box-shad
 }
 
 .logs-controls input[type="number"] {
-    width: 60px;              /* schmaler, platzsparend */
-    padding: 5px 8px;         /* Innenabstand */
-    border-radius: 6px;       /* leicht abgerundet */
-    border: 1px solid #555;   /* dezenter Rahmen */
-    background: #222;          /* dunkler Hintergrund passend zum Panel */
-    color: #fff;              /* Schriftfarbe */
+    width: 60px;              
+    padding: 5px 8px;        
+    border-radius: 6px;      
+    border: 1px solid #555;  
+    background: #222;         
+    color: #fff;              
     font-size: 0.9rem;
     text-align: center;
     transition: all 0.2s ease;
@@ -185,12 +187,12 @@ button.backup:hover { background: #42a5f5; transform: translateY(-2px); box-shad
 
 .logs-controls input[type="number"]:focus {
     outline: none;
-    border-color: #f0a500;   /* Highlight beim Fokus */
+    border-color: #f0a500;   
     box-shadow: 0 0 5px #f0a500;
     background: #333;
 }
 
-/* Buttons in Console Input */
+/* Console input buttons */
 .console-input button {
     padding: 8px 20px;
     border-radius: 8px;
@@ -201,10 +203,12 @@ button.backup:hover { background: #42a5f5; transform: translateY(-2px); box-shad
     cursor: pointer;
     transition: all 0.25s ease;
 }
+
 .console-input button:hover {
     background: #ffb74d;
     transform: translateY(-1px);
 }
+
 .loadlogs {
     padding: 10px 22px;
     border-radius: 10px;
@@ -216,6 +220,7 @@ button.backup:hover { background: #42a5f5; transform: translateY(-2px); box-shad
     transition: all 0.25s ease;
     box-shadow: 0 3px 8px rgba(0,0,0,0.2);
 }
+
 .loadlogs:hover {
     background: #26a69a;
     transform: translateY(-2px);

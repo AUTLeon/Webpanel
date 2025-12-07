@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <title>Minecraft Multiserver Panel</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        /* Logs Style mit Zeilenumbruch und smooth scroll */
+        /* Logs style with word-wrap and smooth scrolling */
         .logs {
             background: rgba(30,30,30,0.8);
             color: #eee;
@@ -17,9 +17,9 @@
             max-height: 300px;
             font-family: monospace;
 
-            white-space: pre-wrap;   /* lange Zeilen umbrechen */
-            word-break: break-word;   /* Zeilen sauber brechen */
-            scroll-behavior: smooth; /* flüssiges Scrollen */
+            white-space: pre-wrap;   /* wrap long lines */
+            word-break: break-word;   /* clean line breaks */
+            scroll-behavior: smooth; /* smooth scrolling */
         }
     </style>
 </head>
@@ -27,7 +27,7 @@
     <div class="wrapper">
         <h1>Minecraft Multiserver Panel</h1>
 
-        <!-- Server-Auswahl -->
+        <!-- Server selection -->
         <div class="server-switch">
             <button class="switch-btn" data-server="server1">Server 1 (1.21.10)</button>
             <button class="switch-btn" data-server="server2">Server 2 (1.20.4)</button>
@@ -49,8 +49,8 @@
             </div>
             <pre id="logs-1" class="logs">loading logs...</pre>
             <div class="console-input">
-                <input id="console-command-1" class="console-input-text" type="text" placeholder="Befehl eingeben...">
-                <button onclick="sendConsoleCommand('server1')">Senden</button>
+                <input id="console-command-1" class="console-input-text" type="text" placeholder="Enter command...">
+                <button onclick="sendConsoleCommand('server1')">Send</button>
             </div>
         </div>
 
@@ -69,8 +69,8 @@
             </div>
             <pre id="logs-2" class="logs">loading logs...</pre>
             <div class="console-input">
-                <input id="console-command-2" class="console-input-text" type="text" placeholder="Befehl eingeben...">
-                <button onclick="sendConsoleCommand('server2')">Senden</button>
+                <input id="console-command-2" class="console-input-text" type="text" placeholder="Enter command...">
+                <button onclick="sendConsoleCommand('server2')">Send</button>
             </div>
         </div>
     </div>
@@ -78,7 +78,7 @@
 <script>
 const serverMap = { server1: 1, server2: 2 };
 
-/* ===== Server wechseln ===== */
+/* ===== Switch Server ===== */
 document.querySelectorAll(".switch-btn").forEach(btn => {
     btn.addEventListener("click", () => {
         const server = btn.dataset.server;
@@ -104,11 +104,11 @@ async function updateStatus(server){
             sText.innerText = "stopped";
             sText.style.color = "#f44336";
         }
-        screenName.innerText = j.detected_screen || "keine erkannt";
+        screenName.innerText = j.detected_screen || "none detected";
     } catch(e){
-        sText.innerText = "Fehler!";
+        sText.innerText = "Error!";
         sText.style.color = "#ff9800";
-        screenName.innerText = "Fehler";
+        screenName.innerText = "Error";
     }
 }
 
@@ -124,11 +124,11 @@ async function serverAction(server, action){
         setTimeout(()=>updateStatus(server),1500);
         setTimeout(()=>loadLogs(server),2000);
     } catch(e){
-        sText.innerText = "Fehler!";
+        sText.innerText = "Error!";
     }
 }
 
-/* ===== LOGS mit Auto-Scroll & Zeilenumbruch ===== */
+/* ===== LOGS with Auto-Scroll & Word Wrap ===== */
 async function loadLogs(server){
     const idx = serverMap[server];
     const logsBox = document.getElementById(`logs-${idx}`);
@@ -138,14 +138,14 @@ async function loadLogs(server){
             logsBox.innerText = await resp.text();
             logsBox.scrollTop = logsBox.scrollHeight; // Auto scroll
         } else {
-            logsBox.innerText = "Fehler: " + await resp.text();
+            logsBox.innerText = "Error: " + await resp.text();
         }
     } catch(e){
-        logsBox.innerText = "Fehler beim Laden der Logs";
+        logsBox.innerText = "Error loading logs";
     }
 }
 
-/* ===== KONSOLE ===== */
+/* ===== CONSOLE ===== */
 async function sendConsoleCommand(server){
     const idx = serverMap[server];
     const cmdInput = document.getElementById(`console-command-${idx}`);
@@ -163,7 +163,7 @@ async function sendConsoleCommand(server){
     cmdInput.value = "";
 }
 
-/* ===== Enter drücken ===== */
+/* ===== Press Enter ===== */
 document.querySelectorAll("input[id^='console-command-']").forEach(input => {
     input.addEventListener("keypress", e => {
         if(e.key==="Enter"){
@@ -179,7 +179,7 @@ Object.keys(serverMap).forEach(s => {
     loadLogs(s); 
 });
 setInterval(()=>Object.keys(serverMap).forEach(s => updateStatus(s)),5000);
-setInterval(()=>Object.keys(serverMap).forEach(s => loadLogs(s)),2000); // automatische Logs alle 2s
+setInterval(()=>Object.keys(serverMap).forEach(s => loadLogs(s)),2000); // automatic logs every 2s
 </script>
 </body>
 </html>
