@@ -123,7 +123,13 @@ button.backup:hover { background: #42a5f5; transform: translateY(-2px); box-shad
     box-shadow: inset 0 2px 6px rgba(0,0,0,0.3);
     max-height: 300px;
     font-family: monospace;
+
+    /* Zeilenumbruch und smooth scroll */
+    white-space: pre-wrap;   /* lange Zeilen umbrechen */
+    word-break: break-word;   /* Zeilen sauber brechen */
+    scroll-behavior: smooth; /* flüssiges Scrollen */
 }
+
 
 /* Konsolen-Eingabe */
 .console-input {
