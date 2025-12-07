@@ -18,6 +18,7 @@ SERVERS = {
     }
 }
 
+# Hilfsfunktionen
 def run(cmd, wait=True):
     if wait:
         return subprocess.run(cmd, shell=True, capture_output=True, text=True)
@@ -31,6 +32,7 @@ def is_running(screen):
 def server_path(server, script):
     return os.path.join(SERVERS[server]["dir"], script)
 
+# ===== Routen =====
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -74,24 +76,29 @@ def backup(server):
 
 @app.route("/<server>/logs")
 def logs(server):
-    log_file = os.path.join(SERVERS[server]["dir"], "server.log")
+    """
+    Liest die letzten Zeilen aus logs/latest.log, nicht aus server.log
+    """
+    log_file = os.path.join(SERVERS[server]["dir"], "logs", "latest.log")
     n = int(request.args.get("lines", "200"))
     if os.path.exists(log_file):
-        with open(log_file,"r",errors="ignore") as f:
+        with open(log_file, "r", errors="ignore") as f:
             lines = f.readlines()
+        # Gib nur die letzten n Zeilen zurück
         return "".join(lines[-n:]), 200, {"Content-Type":"text/plain; charset=utf-8"}
-    return "server.log nicht gefunden!", 404
+    return "latest.log nicht gefunden!", 404
 
 @app.route("/<server>/console", methods=["POST"])
 def console(server):
     cmd = request.json.get("command")
     scr = SERVERS[server]["screen"]
     if not is_running(scr):
-        return jsonify({"status":"error","msg":"Server nicht gestartet"}),400
+        return jsonify({"status": "error", "msg": "Server nicht gestartet"}), 400
     if cmd:
         run(f'screen -S {shlex.quote(scr)} -X stuff "{cmd}\n"')
         return f"Gesendet: {cmd}"
     return "Kein Command", 400
 
-if __name__=="__main__":
+# ===== Main =====
+if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
