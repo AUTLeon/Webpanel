@@ -29,11 +29,6 @@
             <div class="status">
                 Status: <span id="status-text-1">lade...</span>
             </div>
-            <div class="logs-controls">
-                <button class="loadlogs" onclick="loadLogs('server1')">Logs aktualisieren</button>
-                <label><input type="checkbox" id="auto-refresh-logs-1"> Auto-refresh (5s)</label>
-                <label>Zeilen: <input id="log-lines-1" type="number" value="25" min="10" max="5000" style="width:80px"></label>
-            </div>
             <pre id="logs-1" class="logs">lade logs...</pre>
             <div class="console-input">
                 <input id="console-command-1" class="console-input-text" type="text" placeholder="Befehl eingeben...">
@@ -54,11 +49,6 @@
             <div class="status">
                 Status: <span id="status-text-2">lade...</span>
             </div>
-            <div class="logs-controls">
-                <button class="loadlogs" onclick="loadLogs('server2')">Logs aktualisieren</button>
-                <label><input type="checkbox" id="auto-refresh-logs-2"> Auto-refresh (5s)</label>
-                <label>Zeilen: <input id="log-lines-2" type="number" value="25" min="10" max="5000" style="width:80px"></label>
-            </div>
             <pre id="logs-2" class="logs">lade logs...</pre>
             <div class="console-input">
                 <input id="console-command-2" class="console-input-text" type="text" placeholder="Befehl eingeben...">
@@ -68,11 +58,7 @@
     </div>
 
 <script>
-const serverMap = {
-    server1: 1,
-    server2: 2
-};
-let autoLogsIntervals = {};
+const serverMap = { server1: 1, server2: 2 };
 
 /* ===== Server wechseln ===== */
 document.querySelectorAll(".switch-btn").forEach(btn => {
@@ -80,7 +66,7 @@ document.querySelectorAll(".switch-btn").forEach(btn => {
         const server = btn.dataset.server;
         document.querySelectorAll(".server-panel").forEach(p => p.style.display = "none");
         document.getElementById(server + "-panel").style.display = "block";
-        loadLogs(server); // sofort laden beim Wechsel
+        loadLogs(server);
         updateStatus(server);
     });
 });
@@ -124,29 +110,20 @@ async function serverAction(server, action){
     }
 }
 
-/* ===== LOGS ===== */
+/* ===== LOGS mit Auto-Scroll ===== */
 async function loadLogs(server){
     const idx = serverMap[server];
-    const lines = document.getElementById(`log-lines-${idx}`).value || 200;
     const logsBox = document.getElementById(`logs-${idx}`);
     try{
-        const resp = await fetch(`/${server}/logs?lines=${lines}`);
+        const resp = await fetch(`/${server}/logs`);
         if(resp.status === 200){
             logsBox.innerText = await resp.text();
+            logsBox.scrollTop = logsBox.scrollHeight; // Auto scroll
         } else {
             logsBox.innerText = "Fehler: " + await resp.text();
         }
     } catch(e){
         logsBox.innerText = "Fehler beim Laden der Logs";
-    }
-
-    // Auto-refresh
-    const autoCheckbox = document.getElementById(`auto-refresh-logs-${idx}`);
-    if(autoCheckbox.checked){
-        if(autoLogsIntervals[server]) clearInterval(autoLogsIntervals[server]);
-        autoLogsIntervals[server] = setInterval(()=>loadLogs(server),5000);
-    } else if(autoLogsIntervals[server]) {
-        clearInterval(autoLogsIntervals[server]);
     }
 }
 
@@ -178,9 +155,13 @@ document.querySelectorAll("input[id^='console-command-']").forEach(input => {
     });
 });
 
-/* ===== INITIAL ===== */
-Object.keys(serverMap).forEach(s => { updateStatus(s); loadLogs(s); });
+/* ===== Initial load ===== */
+Object.keys(serverMap).forEach(s => { 
+    updateStatus(s); 
+    loadLogs(s); 
+});
 setInterval(()=>Object.keys(serverMap).forEach(s => updateStatus(s)),5000);
+setInterval(()=>Object.keys(serverMap).forEach(s => loadLogs(s)),2000); // automatische Logs alle 2s
 </script>
 </body>
 </html>
