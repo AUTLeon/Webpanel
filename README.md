@@ -50,3 +50,43 @@ This directory structure includes setups for two different Minecraft versions, s
 | webpanel/templates/           | HTML templates for the web interface (e.g., index.html).            |
 | webpanel/static/              | Static assets for the web interface (e.g., style.css).              |
 | mcrcon/                       | Directory likely containing the MCRCON binary or related files.     |
+```bash
+mc-server/
+├── fabric-1.20.4/
+│   ├── .fabric/
+│   ├── backups/
+│   ├── config/
+│   ├── ...
+│   ├── start.sh
+│   ├── stop.sh
+│   ├── backup.sh
+│   ├── eula.txt
+│   ├── fabric-server-mc.1.20.4.jar
+│   └── server.properties
+├── fabric-1.21.10/
+│   ├── start.sh
+│   ├── stop.sh
+│   ├── backup.sh
+│   ├── ...
+│   └── server.properties
+├── webpanel/
+│   ├── __pycache__/
+│   ├── static/
+│   ├── templates/
+│   ├── venv/
+│   ├── app.py
+│   ├── README.md
+│   ├── start_panel.sh
+│   └── stop_panel.sh
+└── mcrcon/
+```
+## ⚙️ Prerequisites
+To run the web panel and connect to the server, ensure the following are installed and configured:
+- Python 3 is installed.
+- The Flask library (and any other dependencies) is available within the webpanel/ environment (likely in venv/).
+- RCON is correctly configured in your Minecraft server's server.properties file:
+```bash
+enable-rcon=true
+rcon.password=9071
+rcon.port=25575
+```
