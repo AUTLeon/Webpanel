@@ -75,6 +75,7 @@ h1 {
     justify-content: center;
     gap: 10px;
     flex-wrap: wrap;
+    margin: 10px 0;
 }
 
 .buttons button {
@@ -128,6 +129,11 @@ button.backup:hover { background: #42a5f5; transform: translateY(-2px); box-shad
     display: flex;
     gap: 10px;
     justify-content: center;
+}
+.meta {
+    font-size: 0.9rem;
+    color: #ccc;
+    margin-bottom: 10px;
 }
 
 .console-input-text {
