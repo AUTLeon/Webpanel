@@ -157,6 +157,32 @@ button.backup:hover { background: #42a5f5; transform: translateY(-2px); box-shad
     font-size: 0.9rem;
     margin-top: 10px;
 }
+.logs-controls label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    color: #ddd;
+}
+
+.logs-controls input[type="number"] {
+    width: 60px;              /* schmaler, platzsparend */
+    padding: 5px 8px;         /* Innenabstand */
+    border-radius: 6px;       /* leicht abgerundet */
+    border: 1px solid #555;   /* dezenter Rahmen */
+    background: #222;          /* dunkler Hintergrund passend zum Panel */
+    color: #fff;              /* Schriftfarbe */
+    font-size: 0.9rem;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.logs-controls input[type="number"]:focus {
+    outline: none;
+    border-color: #f0a500;   /* Highlight beim Fokus */
+    box-shadow: 0 0 5px #f0a500;
+    background: #333;
+}
 
 /* Buttons in Console Input */
 .console-input button {
