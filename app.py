@@ -18,7 +18,7 @@ SERVERS = {
         "service": "mc-fabric-1204.service",
         "log_file": "/home/leon/mc-server/fabric-1.20.4/logs/latest.log",
         "console_dir": "/home/leon/mc-server/fabric-1.20.4",
-        "pid_file": "/home/leon/mc-server/fabric-1.20.4/server.pid"
+        "screen_name": "mc-1204"
     }
 }
 
