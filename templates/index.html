@@ -1,462 +1,57 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minecraft Multiserver Panel</title>
+    <meta charset="UTF-8">
+    <title>Minecraft Webpanel</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        /* Logs style with word-wrap and smooth scrolling */
-        .logs {
-            background: rgba(30,30,30,0.8);
-            color: #eee;
-            padding: 12px;
-            border-radius: 10px;
-            text-align: left;
-            overflow-y: auto;
-            box-shadow: inset 0 2px 6px rgba(0,0,0,0.3);
-            max-height: 300px;
-            font-family: monospace;
-            white-space: pre-wrap;
-            word-break: break-word;
-            scroll-behavior: smooth;
-        }
-        
-        .status-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-        
-        .status-running {
-            background-color: #4caf50;
-            box-shadow: 0 0 8px #4caf50;
-        }
-        
-        .status-stopped {
-            background-color: #f44336;
-            box-shadow: 0 0 8px #f44336;
-        }
-        
-        .status-error {
-            background-color: #ff9800;
-            box-shadow: 0 0 8px #ff9800;
-        }
-        
-        .debug-info {
-            font-size: 0.8rem;
-            color: #888;
-            margin-top: 5px;
-            padding: 5px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 5px;
-        }
-    </style>
 </head>
 <body>
-    <div class="wrapper">
-        <h1>🎮 Minecraft Multiserver Panel</h1>
-        
-        <!-- Debug Info -->
-        <div id="debug-info" class="debug-info" style="display: none;">
-            Last update: <span id="last-update">-</span> | 
-            API Status: <span id="api-status">OK</span>
-        </div>
-
-        <!-- Server selection -->
-        <div class="server-switch">
-            <button class="switch-btn active" data-server="server1" onclick="switchServer('server1')">
-                Server 1 (1.21.10)
-            </button>
-            <button class="switch-btn" data-server="server2" onclick="switchServer('server2')">
-                Server 2 (1.20.4)
-            </button>
-        </div>
-
-        <!-- Server 1 Panel -->
-        <div id="server1-panel" class="server-panel">
-            <h2>Server 1 – 1.21.10</h2>
-            <div class="meta">
-                Screen: <strong id="screen-name-1">loading...</strong> |
-                Directory: <span id="dir-info-1">loading...</span>
-            </div>
-            
+    <h1>Minecraft Webpanel</h1>
+    <div class="servers">
+        {% for sid, server in servers.items() %}
+        <div class="server-card" id="{{ sid }}">
+            <h2>{{ server.name }}</h2>
+            <p>Status: <span class="status">{{ statuses[sid] }}</span></p>
             <div class="buttons">
-                <button class="start" onclick="serverAction('server1', 'start', event)">🚀 Start</button>
-                <button class="stop" onclick="serverAction('server1', 'stop', event)">🛑 Stop</button>
-                <button class="backup" onclick="serverAction('server1', 'backup', event)">💾 Backup</button>
-                <button class="restart" onclick="serverAction('server1', 'restart', event)" style="background: #ff9800;">🔄 Restart</button>
-                <button class="force-stop" onclick="serverAction('server1', 'force-stop', event)" style="background: #d32f2f;">⚠️ Force Stop</button>
+                <button onclick="action('{{ sid }}','start')">Start</button>
+                <button onclick="action('{{ sid }}','stop')">Stop</button>
+                <button onclick="action('{{ sid }}','restart')">Restart</button>
+                <button onclick="action('{{ sid }}','backup')">Backup</button>
             </div>
-            
-            <div class="status">
-                <span class="status-indicator" id="status-indicator-1"></span>
-                Status: <span id="status-text-1">loading...</span>
-                <div id="status-details-1" class="debug-info"></div>
-            </div>
-            
-            <div class="logs-header">
-                <h3>Server Logs</h3>
-                <button onclick="loadLogs('server1')" class="loadlogs">🔄 Refresh Logs</button>
-            </div>
-            <pre id="logs-1" class="logs">Loading logs...</pre>
-            
-            <div class="console-input">
-                <h3>Console</h3>
-                <input id="console-command-1" class="console-input-text" type="text" 
-                       placeholder="Enter Minecraft command..." onkeypress="if(event.key=='Enter') sendConsoleCommand('server1')">
-                <button onclick="sendConsoleCommand('server1')">Send</button>
-            </div>
+            <pre class="output"></pre>
         </div>
-
-        <!-- Server 2 Panel -->
-        <div id="server2-panel" class="server-panel" style="display:none;">
-            <h2>Server 2 – 1.20.4</h2>
-            <div class="meta">
-                Screen: <strong id="screen-name-2">loading...</strong> |
-                Directory: <span id="dir-info-2">loading...</span>
-            </div>
-            
-            <div class="buttons">
-                <button class="start" onclick="serverAction('server2', 'start', event)">🚀 Start</button>
-                <button class="stop" onclick="serverAction('server2', 'stop', event)">🛑 Stop</button>
-                <button class="backup" onclick="serverAction('server2', 'backup', event)">💾 Backup</button>
-                <button class="restart" onclick="serverAction('server2', 'restart', event)" style="background: #ff9800;">🔄 Restart</button>
-                <button class="force-stop" onclick="serverAction('server2', 'force-stop', event)" style="background: #d32f2f;">⚠️ Force Stop</button>
-            </div>
-            
-            <div class="status">
-                <span class="status-indicator" id="status-indicator-2"></span>
-                Status: <span id="status-text-2">loading...</span>
-                <div id="status-details-2" class="debug-info"></div>
-            </div>
-            
-            <div class="logs-header">
-                <h3>Server Logs</h3>
-                <button onclick="loadLogs('server2')" class="loadlogs">🔄 Refresh Logs</button>
-            </div>
-            <pre id="logs-2" class="logs">Loading logs...</pre>
-            
-            <div class="console-input">
-                <h3>Console</h3>
-                <input id="console-command-2" class="console-input-text" type="text" 
-                       placeholder="Enter Minecraft command..." onkeypress="if(event.key=='Enter') sendConsoleCommand('server2')">
-                <button onclick="sendConsoleCommand('server2')">Send</button>
-            </div>
-        </div>
+        {% endfor %}
     </div>
 
-<script>
-const serverMap = { server1: 1, server2: 2 };
-let currentServer = 'server1';
-let updateInterval;
+    <script>
+        async function action(server, cmd) {
+            const card = document.getElementById(server);
+            const output = card.querySelector(".output");
+            const statusEl = card.querySelector(".status");
+            output.textContent = "⏳ Bitte warten...";
+            try {
+                const resp = await fetch(`/${server}/${cmd}`);
+                const data = await resp.json();
+                output.textContent = JSON.stringify(data, null, 2);
+                // Aktualisiere Status nach Aktion
+                const statusResp = await fetch(`/${server}/status`);
+                const statusData = await statusResp.json();
+                statusEl.textContent = statusData.status;
+            } catch (err) {
+                output.textContent = "❌ Fehler: " + err;
+            }
+        }
 
-/* ===== Switch Server ===== */
-function switchServer(server) {
-    currentServer = server;
-    
-    // Update button styles
-    document.querySelectorAll(".switch-btn").forEach(btn => {
-        btn.classList.remove("active");
-        if (btn.dataset.server === server) {
-            btn.classList.add("active");
-        }
-    });
-    
-    // Show selected panel
-    document.querySelectorAll(".server-panel").forEach(p => p.style.display = "none");
-    document.getElementById(server + "-panel").style.display = "block";
-    
-    // Load data for selected server
-    updateStatus(server);
-    loadLogs(server);
-}
-
-/* ===== STATUS ===== */
-async function updateStatus(server){
-    const idx = serverMap[server];
-    const sText = document.getElementById("status-text-" + idx);
-    const sIndicator = document.getElementById("status-indicator-" + idx);
-    const screenName = document.getElementById("screen-name-" + idx);
-    const dirInfo = document.getElementById("dir-info-" + idx);
-    const statusDetails = document.getElementById("status-details-" + idx);
-    
-    try{
-        const resp = await fetch(`/${server}/status`);
-        if (!resp.ok) {
-            throw new Error(`HTTP ${resp.status}`);
-        }
-        
-        const data = await resp.json();
-        console.log(`Status for ${server}:`, data);
-        
-        // Update status indicator
-        sIndicator.className = "status-indicator";
-        if (data.running) {
-            sIndicator.classList.add("status-running");
-            sText.innerText = "✅ Running";
-            sText.style.color = "#4caf50";
-        } else if (data.error) {
-            sIndicator.classList.add("status-error");
-            sText.innerText = "⚠️ Error";
-            sText.style.color = "#ff9800";
-        } else {
-            sIndicator.classList.add("status-stopped");
-            sText.innerText = "❌ Stopped";
-            sText.style.color = "#f44336";
-        }
-        
-        // Update screen name
-        screenName.innerText = data.screen_name || "unknown";
-        screenName.style.color = data.screen_running ? "#4caf50" : "#f44336";
-        
-        // Update directory info
-        dirInfo.innerText = data.dir_exists ? "✓ Found" : "✗ Missing";
-        dirInfo.style.color = data.dir_exists ? "#4caf50" : "#f44336";
-        
-        // Update debug info
-        let details = [];
-        if (data.script_exists) details.push("Script: ✓");
-        if (data.jar_exists) details.push("JAR: ✓");
-        if (data.screen_running) details.push("Screen: Running");
-        if (data.port_check) details.push("Port: Active");
-        
-        statusDetails.innerHTML = details.join(" | ") || "No details available";
-        
-        // Update debug panel
-        document.getElementById("last-update").textContent = new Date().toLocaleTimeString();
-        
-    } catch(error){
-        console.error("Status fetch error:", error);
-        sText.innerText = "⚠️ Connection Error";
-        sText.style.color = "#ff9800";
-        sIndicator.className = "status-indicator status-error";
-        screenName.innerText = "Error";
-        dirInfo.innerText = "Error";
-        statusDetails.innerHTML = `Error: ${error.message}`;
-    }
-}
-
-/* ===== START/STOP/BACKUP ===== */
-async function serverAction(server, action, event){
-    const idx = serverMap[server];
-    const sText = document.getElementById("status-text-" + idx);
-    const button = event.target;
-    const originalText = button.innerHTML;
-    
-    try{
-        // Disable button and show loading
-        button.disabled = true;
-        button.innerHTML = "⏳ Processing...";
-        
-        // Show status update
-        sText.innerText = `⏳ ${action}ing server...`;
-        sText.style.color = "#f0a500";
-        
-        const resp = await fetch(`/${server}/${action}`);
-        const resultText = await resp.text();
-        
-        if (!resp.ok) {
-            throw new Error(resultText);
-        }
-        
-        // Show success message
-        sText.innerText = `✅ ${resultText}`;
-        sText.style.color = "#4caf50";
-        
-        // Re-enable button after 2 seconds
-        setTimeout(() => {
-            button.disabled = false;
-            button.innerHTML = originalText;
-        }, 2000);
-        
-        // Update status after 3 seconds
-        setTimeout(() => {
-            updateStatus(server);
-        }, 3000);
-        
-        // Reload logs after 4 seconds
-        setTimeout(() => {
-            loadLogs(server);
-        }, 4000);
-        
-    } catch(error){
-        console.error(`${action} error:`, error);
-        sText.innerText = `❌ Error: ${error.message.substring(0, 100)}`;
-        sText.style.color = "#f44336";
-        
-        // Re-enable button immediately on error
-        button.disabled = false;
-        button.innerHTML = originalText;
-        
-        // Try to update status anyway
-        setTimeout(() => updateStatus(server), 2000);
-    }
-}
-
-/* ===== LOGS ===== */
-async function loadLogs(server){
-    const idx = serverMap[server];
-    const logsBox = document.getElementById(`logs-${idx}`);
-    const logsBtn = logsBox.previousElementSibling?.querySelector(".loadlogs");
-    
-    // Show loading state
-    logsBox.innerText = "Loading logs...";
-    if (logsBtn) {
-        logsBtn.disabled = true;
-        logsBtn.innerHTML = "⏳ Loading...";
-    }
-    
-    try{
-        const resp = await fetch(`/${server}/logs`);
-        if(resp.status === 200){
-            const text = await resp.text();
-            logsBox.innerText = text || "(Log file is empty)";
-            
-            // Auto scroll to bottom
-            setTimeout(() => {
-                logsBox.scrollTop = logsBox.scrollHeight;
-            }, 100);
-        } else {
-            logsBox.innerText = `Error loading logs: ${resp.status} ${await resp.text()}`;
-        }
-    } catch(error){
-        logsBox.innerText = `Error: ${error.message}`;
-    } finally {
-        if (logsBtn) {
-            setTimeout(() => {
-                logsBtn.disabled = false;
-                logsBtn.innerHTML = "🔄 Refresh Logs";
-            }, 1000);
-        }
-    }
-}
-
-/* ===== CONSOLE ===== */
-async function sendConsoleCommand(server){
-    const idx = serverMap[server];
-    const cmdInput = document.getElementById(`console-command-${idx}`);
-    const cmd = cmdInput.value.trim();
-    
-    if(!cmd) {
-        alert("Please enter a command");
-        return;
-    }
-    
-    const logsBox = document.getElementById(`logs-${idx}`);
-    const sendBtn = cmdInput.nextElementSibling;
-    const originalBtnText = sendBtn.innerHTML;
-    
-    // Show sending state
-    sendBtn.disabled = true;
-    sendBtn.innerHTML = "⏳ Sending...";
-    
-    try{
-        const resp = await fetch(`/${server}/console`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({command: cmd})
-        });
-        
-        const result = await resp.json();
-        
-        // Add command to logs
-        logsBox.innerText += `\n> ${cmd}\n`;
-        
-        if(result.status === "success"){
-            logsBox.innerText += `Command sent successfully\n`;
-        } else {
-            logsBox.innerText += `Error: ${result.msg}\n`;
-        }
-        
-        // Scroll to bottom
-        logsBox.scrollTop = logsBox.scrollHeight;
-        
-    } catch(error){
-        logsBox.innerText += `\n> ${cmd}\nNetwork error: ${error.message}\n`;
-        logsBox.scrollTop = logsBox.scrollHeight;
-    } finally {
-        // Clear input and re-enable button
-        cmdInput.value = "";
-        sendBtn.disabled = false;
-        sendBtn.innerHTML = originalBtnText;
-        cmdInput.focus();
-    }
-}
-
-/* ===== INITIALIZATION ===== */
-function initPanel() {
-    console.log("Initializing Minecraft Panel...");
-    
-    // Show debug info
-    document.getElementById("debug-info").style.display = "block";
-    
-    // Initial load for current server
-    updateStatus(currentServer);
-    loadLogs(currentServer);
-    
-    // Set up intervals
-    if (updateInterval) {
-        clearInterval(updateInterval);
-    }
-    
-    // Update status every 10 seconds
-    updateInterval = setInterval(() => {
-        updateStatus(currentServer);
-    }, 10000);
-    
-    // Auto-refresh logs every 30 seconds
-    setInterval(() => {
-        loadLogs(currentServer);
-    }, 30000);
-    
-    console.log("Panel initialized");
-}
-
-/* ===== EVENT LISTENERS ===== */
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize
-    initPanel();
-    
-    // Add keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-        // Ctrl+R to refresh current server
-        if (e.ctrlKey && e.key === 'r') {
-            e.preventDefault();
-            updateStatus(currentServer);
-            loadLogs(currentServer);
-        }
-        
-        // Ctrl+L to focus console input
-        if (e.ctrlKey && e.key === 'l') {
-            e.preventDefault();
-            const input = document.getElementById(`console-command-${serverMap[currentServer]}`);
-            if (input) input.focus();
-        }
-    });
-    
-    // Add error handler
-    window.addEventListener('error', function(e) {
-        console.error('Global error:', e.error);
-        document.getElementById('api-status').textContent = 'ERROR';
-        document.getElementById('api-status').style.color = '#f44336';
-    });
-});
-
-/* ===== EXPORT FOR DEBUGGING ===== */
-window.debugPanel = {
-    updateStatus,
-    loadLogs,
-    serverAction,
-    sendConsoleCommand,
-    switchServer,
-    getCurrentServer: () => currentServer
-};
-</script>
+        // Auto-Refresh Status alle 10 Sekunden
+        setInterval(async () => {
+            {% for sid in servers.keys() %}
+            try {
+                const resp = await fetch("/{{ sid }}/status");
+                const data = await resp.json();
+                document.querySelector("#{{ sid }} .status").textContent = data.status;
+            } catch {}
+            {% endfor %}
+        }, 10000);
+    </script>
 </body>
 </html>
