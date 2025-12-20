@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
-    <meta charset="utf-8">
-    <title>Minecraft Webpanel</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<meta charset="UTF-8">
+<title>Minecraft Webpanel</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 <h1>Minecraft Webpanel</h1>
@@ -11,25 +11,60 @@
 {% for id, server in servers.items() %}
 <li>
     <strong>{{ server.name }}</strong>
-    <button onclick="fetch('/{{ id }}/start')">Start</button>
-    <button onclick="fetch('/{{ id }}/stop')">Stop</button>
-    <button onclick="fetch('/{{ id }}/restart')">Restart</button>
-    <button onclick="fetch('/{{ id }}/backup')">Backup</button>
-    <span id="{{ id }}-status">loading...</span>
+    <button onclick="startServer('{{ id }}')">Start</button>
+    <button onclick="stopServer('{{ id }}')">Stop</button>
+    <button onclick="restartServer('{{ id }}')">Restart</button>
+    <button onclick="backupServer('{{ id }}')">Backup</button>
+    <div>Status: <span id="{{ id }}-status">Loading...</span></div>
+    <div>
+        <textarea id="{{ id }}-logs" readonly></textarea>
+    </div>
+    <div>
+        <input id="{{ id }}-cmd" placeholder="Befehl eingeben">
+        <button onclick="sendCommand('{{ id }}')">Senden</button>
+    </div>
 </li>
 {% endfor %}
 </ul>
 
 <script>
-function updateStatus() {
-    {% for id, server in servers.items() %}
-    fetch('/{{ id }}/status').then(r=>r.json()).then(data=>{
-        document.getElementById('{{ id }}-status').textContent = data.running ? '✅ Running' : '❌ Stopped';
+    function fetchStatus() {
+        {% for id, server in servers.items() %}
+        fetch("/{{ id }}/status").then(r=>r.json()).then(data=>{
+            document.getElementById("{{ id }}-status").textContent = data.running ? '✅ Running' : '❌ Stopped';
+        });
+        {% endfor %}
+    }
+
+    function fetchLogs() {
+        {% for id, server in servers.items() %}
+        fetch("/{{ id }}/logs").then(r=>r.text()).then(data=>{
+            let area = document.getElementById("{{ id }}-logs");
+            area.value = data;
+            area.scrollTop = area.scrollHeight;
+        });
+        {% endfor %}
+    }
+
+function startServer(id){fetch("/"+id+"/start").then(fetchStatus);}
+function stopServer(id){fetch("/"+id+"/stop").then(fetchStatus);}
+function restartServer(id){fetch("/"+id+"/restart").then(fetchStatus);}
+function backupServer(id){fetch("/"+id+"/backup");}
+
+function sendCommand(id){
+    let cmd = document.getElementById(id+"-cmd").value;
+    fetch("/"+id+"/console", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({command: cmd})
     });
-    {% endfor %}
+    document.getElementById(id+"-cmd").value = "";
 }
-setInterval(updateStatus, 2000);
-updateStatus();
+
+setInterval(fetchStatus, 2000);
+setInterval(fetchLogs, 2000);
+fetchStatus();
+fetchLogs();
 </script>
 </body>
 </html>
