@@ -90,5 +90,9 @@ enable-rcon=true
 rcon.password=9071
 rcon.port=25575
 ```
+## Systemd
+- systemctl start/stop/status/restart wepanel
+- systemctl start/stop/status/restart mc-fabric-1204
+- systemctl start/stop/status/restart mc-fabric-12110
 ## 📄 License / Usage
 This setup is intended for private use to operate your own Minecraft servers. You are free to modify and expand the project as needed.
