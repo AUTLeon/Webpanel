@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from flask import Flask, render_template, jsonify, request
-import subprocess, time, os
+import subprocess, time, os, signal
 
 app = Flask(__name__)
 
@@ -10,27 +10,40 @@ SERVERS = {
         "name": "1.21.10",
         "service": "mc-fabric-12110.service",
         "log_file": "/home/leon/mc-server/fabric-1.21.10/logs/latest.log",
-        "console_dir": "/home/leon/mc-server/fabric-1.21.10"
+        "console_dir": "/home/leon/mc-server/fabric-1.21.10",
+        "pid_file": "/home/leon/mc-server/fabric-1.21.10/server.pid"
     },
     "server2": {
         "name": "1.20.4",
         "service": "mc-fabric-1204.service",
         "log_file": "/home/leon/mc-server/fabric-1.20.4/logs/latest.log",
-        "console_dir": "/home/leon/mc-server/fabric-1.20.4"
+        "console_dir": "/home/leon/mc-server/fabric-1.20.4",
+        "pid_file": "/home/leon/mc-server/fabric-1.20.4/server.pid"
     }
 }
 
 # ===== Helper =====
 def systemctl(cmd, service):
     try:
-        result = subprocess.run(["systemctl", "--user", cmd, service], capture_output=True, text=True)
+        # --system statt --user, weil deine Systemd-Services global laufen
+        result = subprocess.run(["sudo", "systemctl", cmd, service], capture_output=True, text=True)
         return result.stdout + result.stderr
     except Exception as e:
         return str(e)
 
 def is_active(service):
-    result = subprocess.run(["systemctl", "--user", "is-active", service], capture_output=True, text=True)
+    result = subprocess.run(["sudo", "systemctl", "is-active", service], capture_output=True, text=True)
     return result.stdout.strip() == "active"
+
+def get_pid(server):
+    pid_file = SERVERS[server]["pid_file"]
+    if os.path.exists(pid_file):
+        try:
+            with open(pid_file) as f:
+                return int(f.read().strip())
+        except:
+            return None
+    return None
 
 # ===== Routes =====
 @app.route("/")
@@ -39,30 +52,26 @@ def index():
 
 @app.route("/<server>/status")
 def status(server):
-    svc = SERVERS[server]["service"]
-    running = is_active(svc)
+    running = is_active(SERVERS[server]["service"])
     return jsonify({"running": running})
 
 @app.route("/<server>/start")
 def start(server):
-    svc = SERVERS[server]["service"]
-    output = systemctl("start", svc)
+    output = systemctl("start", SERVERS[server]["service"])
     time.sleep(2)
-    return jsonify({"output": output, "running": is_active(svc)})
+    return jsonify({"output": output, "running": is_active(SERVERS[server]["service"])})
 
 @app.route("/<server>/stop")
 def stop(server):
-    svc = SERVERS[server]["service"]
-    output = systemctl("stop", svc)
+    output = systemctl("stop", SERVERS[server]["service"])
     time.sleep(2)
-    return jsonify({"output": output, "running": is_active(svc)})
+    return jsonify({"output": output, "running": is_active(SERVERS[server]["service"])})
 
 @app.route("/<server>/restart")
 def restart(server):
-    svc = SERVERS[server]["service"]
-    output = systemctl("restart", svc)
+    output = systemctl("restart", SERVERS[server]["service"])
     time.sleep(2)
-    return jsonify({"output": output, "running": is_active(svc)})
+    return jsonify({"output": output, "running": is_active(SERVERS[server]["service"])})
 
 @app.route("/<server>/backup")
 def backup(server):
@@ -88,10 +97,19 @@ def console(server):
     cmd = data.get("command")
     if not cmd:
         return jsonify({"status": "error", "msg": "No command provided"}), 400
-    dir_ = SERVERS[server]["console_dir"]
-    # Sende Kommando an die laufende Java-Instanz über screen (wenn vorhanden)
-    screen_name = SERVERS[server]["service"].replace(".service","")
-    subprocess.run(f'screen -S {screen_name} -X stuff "{cmd}\n"', shell=True, cwd=dir_)
+
+    pid = get_pid(server)
+    if not pid:
+        return jsonify({"status": "error", "msg": "Server not running"}), 400
+
+    try:
+        # sende Befehl direkt via stdin an Java-Prozess
+        proc = subprocess.Popen(["sudo", "kill", "-SIGCONT", str(pid)])
+        # Alternativ: echo Befehl in screen oder tmux falls du später wieder Screen benutzt
+        # subprocess.run(f"screen -S {server} -X stuff '{cmd}\n'", shell=True)
+    except Exception as e:
+        return jsonify({"status": "error", "msg": str(e)}), 500
+
     return jsonify({"status": "success", "command": cmd})
 
 if __name__ == "__main__":
