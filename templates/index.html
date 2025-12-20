@@ -1,84 +1,88 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <title>Minecraft Server Panel</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<meta charset="UTF-8">
+<title>Minecraft Webpanel</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    <h1>Minecraft Server Panel</h1>
-    {% for key, server in servers.items() %}
-    <div class="server-card" id="{{ key }}">
-        <h2>Server {{ server.name }}</h2>
-        <p>Status: <span class="status">Unbekannt</span></p>
-        <div class="buttons">
-            <button onclick="startServer('{{ key }}')">Start</button>
-            <button onclick="stopServer('{{ key }}')">Stop</button>
-            <button onclick="restartServer('{{ key }}')">Restart</button>
-            <button onclick="backupServer('{{ key }}')">Backup</button>
-        </div>
-        <div class="console">
-            <h3>Console</h3>
-            <pre class="logs"></pre>
-            <input type="text" placeholder="Befehl eingeben..." onkeydown="if(event.key==='Enter') sendCommand('{{ key }}', this.value); this.value='';">
-        </div>
-    </div>
-    {% endfor %}
+<h1>Minecraft Webpanel</h1>
+
+<div id="home">
+  <h2>Wähle einen Server</h2>
+  <div class="server-card" data-server="server1">Server 1.21.10</div>
+  <div class="server-card" data-server="server2">Server 1.20.4</div>
+</div>
+
+<div id="server-controls" style="display:none;">
+  <h2 id="server-title"></h2>
+  <div class="buttons">
+    <button id="start-btn">Start</button>
+    <button id="stop-btn">Stop</button>
+    <button id="restart-btn">Restart</button>
+    <button id="backup-btn">Backup</button>
+  </div>
+  <h3>Status: <span id="status">Lade...</span></h3>
+  <div id="log"></div>
+  <input type="text" id="cmd" placeholder="Befehl eingeben">
+  <button id="send-cmd">Senden</button>
+  <div class="back-btn">
+    <button id="back-btn">Zurück zur Auswahl</button>
+  </div>
+</div>
 
 <script>
-function updateStatus(server){
-    fetch(`/${server}/status`)
-    .then(res => res.json())
-    .then(data => {
-        document.querySelector(`#${server} .status`).innerText = data.running ? '✅ läuft' : '❌ gestoppt';
-    });
+let currentServer = '';
+
+$('.server-card').click(function() {
+  currentServer = $(this).data('server');
+  $('#server-title').text($(this).text());
+  $('#home').hide();
+  $('#server-controls').show();
+  updateStatus();
+  updateLogs();
+});
+
+$('#back-btn').click(function(){
+  $('#server-controls').hide();
+  $('#home').show();
+  currentServer = '';
+});
+
+function updateStatus() {
+  $.get(`/${currentServer}/status`, data => { $('#status').text(data.running ? "Läuft" : "Gestoppt"); });
+}
+function start(){ $.get(`/${currentServer}/start`, updateStatus); }
+function stop(){ $.get(`/${currentServer}/stop`, updateStatus); }
+function restart(){ $.get(`/${currentServer}/restart`, updateStatus); }
+function backup(){ $.get(`/${currentServer}/backup`, data => alert(data.output || data.error)); }
+
+function updateLogs(){
+  $.get(`/${currentServer}/logs`, data => {
+    $('#log').text(data);
+    $('#log').scrollTop($('#log')[0].scrollHeight);
+  });
 }
 
-function startServer(server){
-    fetch(`/${server}/start`).then(r=>r.json()).then(updateStatus(server));
-}
-function stopServer(server){
-    fetch(`/${server}/stop`).then(r=>r.json()).then(updateStatus(server));
-}
-function restartServer(server){
-    fetch(`/${server}/restart`).then(r=>r.json()).then(updateStatus(server));
-}
-function backupServer(server){
-    fetch(`/${server}/backup`).then(r=>r.json()).then(res=>alert(res.output || res.error));
-}
+$('#start-btn').click(start);
+$('#stop-btn').click(stop);
+$('#restart-btn').click(restart);
+$('#backup-btn').click(backup);
 
-function sendCommand(server, cmd){
-    fetch(`/${server}/console`, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({command: cmd})
-    }).then(r=>r.json()).then(res=>{
-        if(res.status!=='success') alert(res.msg);
-    });
-}
+$('#send-cmd').click(function(){
+  const cmd = $('#cmd').val();
+  if(!cmd) return;
+  $.ajax({
+    url:`/${currentServer}/console`,
+    type:'POST',
+    contentType:'application/json',
+    data: JSON.stringify({command: cmd}),
+    success:()=> { $('#cmd').val(''); updateLogs(); }
+  });
+});
 
-function fetchLogs(){
-    {% for key, server in servers.items() %}
-    fetch(`/{{ key }}/logs`).then(r=>r.text()).then(text=>{
-        let logEl = document.querySelector('#{{ key }} .logs');
-        logEl.innerText = text;
-        logEl.scrollTop = logEl.scrollHeight;
-    });
-    {% endfor %}
-}
-
-// Refresh Status & Logs alle 2 Sekunden
-setInterval(()=>{
-    {% for key in servers.keys() %}
-    updateStatus('{{ key }}');
-    {% endfor %}
-    fetchLogs();
-}, 2000);
-
-// Initial Update
-{% for key in servers.keys() %}
-updateStatus('{{ key }}');
-{% endfor %}
+setInterval(()=>{ if(currentServer) { updateStatus(); updateLogs(); } },2000);
 </script>
 </body>
 </html>
