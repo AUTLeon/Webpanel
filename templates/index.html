@@ -1,70 +1,84 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<title>Minecraft Webpanel</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <title>Minecraft Server Panel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-<h1>Minecraft Webpanel</h1>
-<ul>
-{% for id, server in servers.items() %}
-<li>
-    <strong>{{ server.name }}</strong>
-    <button onclick="startServer('{{ id }}')">Start</button>
-    <button onclick="stopServer('{{ id }}')">Stop</button>
-    <button onclick="restartServer('{{ id }}')">Restart</button>
-    <button onclick="backupServer('{{ id }}')">Backup</button>
-    <div>Status: <span id="{{ id }}-status">Loading...</span></div>
-    <div>
-        <textarea id="{{ id }}-logs" readonly></textarea>
+    <h1>Minecraft Server Panel</h1>
+    {% for key, server in servers.items() %}
+    <div class="server-card" id="{{ key }}">
+        <h2>Server {{ server.name }}</h2>
+        <p>Status: <span class="status">Unbekannt</span></p>
+        <div class="buttons">
+            <button onclick="startServer('{{ key }}')">Start</button>
+            <button onclick="stopServer('{{ key }}')">Stop</button>
+            <button onclick="restartServer('{{ key }}')">Restart</button>
+            <button onclick="backupServer('{{ key }}')">Backup</button>
+        </div>
+        <div class="console">
+            <h3>Console</h3>
+            <pre class="logs"></pre>
+            <input type="text" placeholder="Befehl eingeben..." onkeydown="if(event.key==='Enter') sendCommand('{{ key }}', this.value); this.value='';">
+        </div>
     </div>
-    <div>
-        <input id="{{ id }}-cmd" placeholder="Befehl eingeben">
-        <button onclick="sendCommand('{{ id }}')">Senden</button>
-    </div>
-</li>
-{% endfor %}
-</ul>
+    {% endfor %}
 
 <script>
-    function fetchStatus() {
-        {% for id, server in servers.items() %}
-        fetch("/{{ id }}/status").then(r=>r.json()).then(data=>{
-            document.getElementById("{{ id }}-status").textContent = data.running ? '✅ Running' : '❌ Stopped';
-        });
-        {% endfor %}
-    }
-
-    function fetchLogs() {
-        {% for id, server in servers.items() %}
-        fetch("/{{ id }}/logs").then(r=>r.text()).then(data=>{
-            let area = document.getElementById("{{ id }}-logs");
-            area.value = data;
-            area.scrollTop = area.scrollHeight;
-        });
-        {% endfor %}
-    }
-
-function startServer(id){fetch("/"+id+"/start").then(fetchStatus);}
-function stopServer(id){fetch("/"+id+"/stop").then(fetchStatus);}
-function restartServer(id){fetch("/"+id+"/restart").then(fetchStatus);}
-function backupServer(id){fetch("/"+id+"/backup");}
-
-function sendCommand(id){
-    let cmd = document.getElementById(id+"-cmd").value;
-    fetch("/"+id+"/console", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({command: cmd})
+function updateStatus(server){
+    fetch(`/${server}/status`)
+    .then(res => res.json())
+    .then(data => {
+        document.querySelector(`#${server} .status`).innerText = data.running ? '✅ läuft' : '❌ gestoppt';
     });
-    document.getElementById(id+"-cmd").value = "";
 }
 
-setInterval(fetchStatus, 2000);
-setInterval(fetchLogs, 2000);
-fetchStatus();
-fetchLogs();
+function startServer(server){
+    fetch(`/${server}/start`).then(r=>r.json()).then(updateStatus(server));
+}
+function stopServer(server){
+    fetch(`/${server}/stop`).then(r=>r.json()).then(updateStatus(server));
+}
+function restartServer(server){
+    fetch(`/${server}/restart`).then(r=>r.json()).then(updateStatus(server));
+}
+function backupServer(server){
+    fetch(`/${server}/backup`).then(r=>r.json()).then(res=>alert(res.output || res.error));
+}
+
+function sendCommand(server, cmd){
+    fetch(`/${server}/console`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({command: cmd})
+    }).then(r=>r.json()).then(res=>{
+        if(res.status!=='success') alert(res.msg);
+    });
+}
+
+function fetchLogs(){
+    {% for key, server in servers.items() %}
+    fetch(`/{{ key }}/logs`).then(r=>r.text()).then(text=>{
+        let logEl = document.querySelector('#{{ key }} .logs');
+        logEl.innerText = text;
+        logEl.scrollTop = logEl.scrollHeight;
+    });
+    {% endfor %}
+}
+
+// Refresh Status & Logs alle 2 Sekunden
+setInterval(()=>{
+    {% for key in servers.keys() %}
+    updateStatus('{{ key }}');
+    {% endfor %}
+    fetchLogs();
+}, 2000);
+
+// Initial Update
+{% for key in servers.keys() %}
+updateStatus('{{ key }}');
+{% endfor %}
 </script>
 </body>
 </html>
