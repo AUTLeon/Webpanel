@@ -1,57 +1,35 @@
 <!DOCTYPE html>
-<html lang="de">
+<html>
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <title>Minecraft Webpanel</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Minecraft Webpanel</h1>
-    <div class="servers">
-        {% for sid, server in servers.items() %}
-        <div class="server-card" id="{{ sid }}">
-            <h2>{{ server.name }}</h2>
-            <p>Status: <span class="status">{{ statuses[sid] }}</span></p>
-            <div class="buttons">
-                <button onclick="action('{{ sid }}','start')">Start</button>
-                <button onclick="action('{{ sid }}','stop')">Stop</button>
-                <button onclick="action('{{ sid }}','restart')">Restart</button>
-                <button onclick="action('{{ sid }}','backup')">Backup</button>
-            </div>
-            <pre class="output"></pre>
-        </div>
-        {% endfor %}
-    </div>
+<h1>Minecraft Webpanel</h1>
+<ul>
+{% for id, server in servers.items() %}
+<li>
+    <strong>{{ server.name }}</strong>
+    <button onclick="fetch('/{{ id }}/start')">Start</button>
+    <button onclick="fetch('/{{ id }}/stop')">Stop</button>
+    <button onclick="fetch('/{{ id }}/restart')">Restart</button>
+    <button onclick="fetch('/{{ id }}/backup')">Backup</button>
+    <span id="{{ id }}-status">loading...</span>
+</li>
+{% endfor %}
+</ul>
 
-    <script>
-        async function action(server, cmd) {
-            const card = document.getElementById(server);
-            const output = card.querySelector(".output");
-            const statusEl = card.querySelector(".status");
-            output.textContent = "⏳ Bitte warten...";
-            try {
-                const resp = await fetch(`/${server}/${cmd}`);
-                const data = await resp.json();
-                output.textContent = JSON.stringify(data, null, 2);
-                // Aktualisiere Status nach Aktion
-                const statusResp = await fetch(`/${server}/status`);
-                const statusData = await statusResp.json();
-                statusEl.textContent = statusData.status;
-            } catch (err) {
-                output.textContent = "❌ Fehler: " + err;
-            }
-        }
-
-        // Auto-Refresh Status alle 10 Sekunden
-        setInterval(async () => {
-            {% for sid in servers.keys() %}
-            try {
-                const resp = await fetch("/{{ sid }}/status");
-                const data = await resp.json();
-                document.querySelector("#{{ sid }} .status").textContent = data.status;
-            } catch {}
-            {% endfor %}
-        }, 10000);
-    </script>
+<script>
+function updateStatus() {
+    {% for id, server in servers.items() %}
+    fetch('/{{ id }}/status').then(r=>r.json()).then(data=>{
+        document.getElementById('{{ id }}-status').textContent = data.running ? '✅ Running' : '❌ Stopped';
+    });
+    {% endfor %}
+}
+setInterval(updateStatus, 2000);
+updateStatus();
+</script>
 </body>
 </html>
